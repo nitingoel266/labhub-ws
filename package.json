@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "node:start": "node ./dist/index.js",
-    "start": "ts-node --esm ./src/index.ts",
-    "dev": "cross-env NODE_ENV=development nodemon --quiet --watch './src/**/*.ts' --exec 'node --loader ts-node/esm' ./src/index.ts",
+    "node:start": "node --experimental-specifier-resolution=node ./dist/index.js",
+    "start": "NODE_OPTIONS='--experimental-specifier-resolution=node' ts-node --esm ./src/index.ts",
+    "dev": "cross-env NODE_ENV=development nodemon --quiet --watch './src/**/*.ts' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' ./src/index.ts",
     "prod": "cross-env NODE_ENV=production run-s -s clean build node:start",
     "prod:start": "cross-env NODE_ENV=production run-s -s node:start",
     "clean": "shx rm -rf dist",
@@ -30,9 +30,13 @@
   "homepage": "https://github.com/abraj-dew/labhub_ws#readme",
   "dependencies": {
     "chalk": "^5.2.0",
-    "dotenv": "^16.0.3"
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
     "@types/node": "^18.11.15",
     "cross-env": "^7.0.3",
     "nodemon": "^2.0.20",

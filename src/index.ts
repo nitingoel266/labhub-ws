@@ -1,11 +1,43 @@
+import express, { Application } from 'express';
+import cors from 'cors';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
+import errorHandler from './utils/error-handler';
+import indexHandler from './api';
 
 dotenv.config();
 
 const PORT = process.env.PORT || 4000;
-const isProd = process.env.NODE_ENV === 'production';
+// const isProd = process.env.NODE_ENV === 'production';
 
-console.log('LabHub WS');
-console.log(chalk.green(PORT));
-console.log(chalk.red(isProd));
+const app: Application = express();
+
+// remove x-powered-by header
+app.disable('x-powered-by');
+
+// disable cache
+app.disable('etag');
+
+// send formatted json
+app.set('json spaces', 2);
+
+// use application/json parser
+app.use(express.json());
+
+// add CORS headers
+app.use(cors());
+
+// -----------------------------
+
+app.get('/', errorHandler(indexHandler));
+
+// -----------------------------
+
+app.listen(PORT, () => {
+  console.log(chalk.green(`API server running at port ${PORT}`));
+});
+
+// catches uncaught exceptions
+process.on('uncaughtException', err => {
+  console.error(chalk.red('[uncaughtException] API Server:'), err);
+});
