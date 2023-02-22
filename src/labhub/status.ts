@@ -1,12 +1,12 @@
 import { BehaviorSubject } from 'rxjs';
 import { DeviceStatus } from '../types/common';
 
-const initialDeviceStatus: DeviceStatus = {
+export const initialDeviceStatus: DeviceStatus = {
   deviceName: 'LabHub',
   deviceVersion: '2.10',
   batteryLevel: 75,
   leaderSelected: null,
-  membersRegistered: [],
+  membersJoined: [],
   modeSelected: null,
   functionSelected: null,
 };
