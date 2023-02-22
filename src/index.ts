@@ -6,6 +6,7 @@ import chalk from 'chalk';
 import dotenv from 'dotenv';
 import errorHandler from './utils/error-handler';
 import indexHandler from './api';
+import { initSetup } from './utils/setup';
 
 dotenv.config();
 
@@ -50,11 +51,7 @@ io.on('connection', (socket) => {
     // console.log('~~', reason);
   });
 
-  socket.emit('hello2', 'world2');
-
-  socket.on('hello1', (arg) => {
-    console.log('==>', arg);
-  });
+  initSetup(socket);
 });
 
 // -----------------------------
