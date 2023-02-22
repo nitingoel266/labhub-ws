@@ -1,2 +1,2 @@
-export const TOPIC_CLIENT = 'topic_client';
-export const TOPIC_SERVER = 'topic_server';
+export const TOPIC_DEVICE_STATUS = 'topic_device_status';
+export const TOPIC_DEVICE_STATUS_UPDATE = 'topic_device_status_update';

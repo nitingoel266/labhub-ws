@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import dotenv from 'dotenv';
 import errorHandler from './utils/error-handler';
 import indexHandler from './api';
-import { initSetup } from './utils/setup';
+import { initSetup } from './labhub/setup';
 
 dotenv.config();
 
@@ -45,13 +45,13 @@ const io = new Server(httpServer, {
 });
 
 io.on('connection', (socket) => {
-  // console.log('>>', socket.connected, socket.id);
+  // console.log(socket.connected, socket.id);
+  const [subs1] = initSetup(io, socket);
 
   socket.on('disconnect', (reason) => {
-    // console.log('~~', reason);
+    // console.log('disconnected:', reason);
+    subs1.unsubscribe();
   });
-
-  initSetup(socket);
 });
 
 // -----------------------------
