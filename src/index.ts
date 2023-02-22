@@ -1,4 +1,6 @@
 import express, { Application } from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import cors from 'cors';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
@@ -11,6 +13,7 @@ const PORT = process.env.PORT || 4000;
 // const isProd = process.env.NODE_ENV === 'production';
 
 const app: Application = express();
+const httpServer = createServer(app);
 
 // remove x-powered-by header
 app.disable('x-powered-by');
@@ -33,7 +36,30 @@ app.get('/', errorHandler(indexHandler));
 
 // -----------------------------
 
-app.listen(PORT, () => {
+const io = new Server(httpServer, {
+  cors: {
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+  }
+});
+
+io.on('connection', (socket) => {
+  // console.log('>>', socket.connected, socket.id);
+
+  socket.on('disconnect', (reason) => {
+    // console.log('~~', reason);
+  });
+
+  socket.emit('hello2', 'world2');
+
+  socket.on('hello1', (arg) => {
+    console.log('==>', arg);
+  });
+});
+
+// -----------------------------
+
+httpServer.listen(PORT, () => {
   console.log(chalk.green(`API server running at port ${PORT}`));
 });
 
