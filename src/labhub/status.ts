@@ -9,6 +9,7 @@ export const initialDeviceStatus: DeviceStatus = {
   membersJoined: [],
   modeSelected: null,
   funcSelected: null,
+  setupData: { dataRate: 1, dataSample: 'cont' },
 };
 
 export const deviceStatus = new BehaviorSubject<DeviceStatus | null>(initialDeviceStatus);
