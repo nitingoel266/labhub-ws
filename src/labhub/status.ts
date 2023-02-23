@@ -10,6 +10,7 @@ export const initialDeviceStatus: DeviceStatus = {
   modeSelected: null,
   funcSelected: null,
   setupData: { dataRate: 1, dataSample: 'cont' },
+  sensorConnected: null,
 };
 
 export const deviceStatus = new BehaviorSubject<DeviceStatus | null>(initialDeviceStatus);
