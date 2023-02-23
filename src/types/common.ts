@@ -5,12 +5,13 @@ export interface DeviceStatus {
   leaderSelected: string | null;  // leader ID
   membersJoined: string[];
   modeSelected: 'manual' | 'project' | null;
-  functionSelected: string | null;  // Data Setup, Sensors, Heater, and RGB Spect
+  funcSelected: 'data_setup' | 'sensors' | 'heater' | 'rgb_spect' | null;
 }
 
 export interface DeviceStatusUpdate {
   leaderSelected?: string | null;
   memberJoined?: string | null;
   modeSelected?: 'manual' | 'project' | null;
+  funcSelected?: 'data_setup' | 'sensors' | 'heater' | 'rgb_spect' | null;
   resetAll?: boolean;
 }
