@@ -1,4 +1,4 @@
-import { interval, Subscription } from 'rxjs';
+import { timer, merge, take, last, map, Subscription } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { DeviceStatus, DeviceStatusUpdate, DeviceDataStream, DeviceDataStatusUpdate } from '../types/common';
@@ -37,13 +37,27 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     }
     if (sensorExperiment === true) {
       experimentActive = true;
-      const sensorConnected = deviceStatus.value.sensorConnected;
-      subsX2 = interval(1000).subscribe((value) => {
-        const temperature = sensorConnected === 'temperature' ? Math.floor(Math.abs(90 * Math.sin(value/11)) * 10) / 10 : null;
-        const voltage = sensorConnected === 'voltage' ? Math.floor(12 * Math.sin(value/7) *10) / 10 : null;
-        const data: DeviceDataStream = { temperature, voltage };
-        deviceDataStream.next(data);
-        // TODO: experimentActive = false, when sample size is finished
+      const { sensorConnected, setupData } = deviceStatus.value;
+
+      // TODO: Handle `manual` data rate
+      const dataRate = typeof setupData.dataRate === 'number' ? setupData.dataRate : 1;
+      const dataRateMs = dataRate * 1000;
+
+      const obs1 = timer(0, dataRateMs);
+      const obsA = timer(0, dataRateMs).pipe(take(setupData.dataSample as number));
+      const obsB = obsA.pipe(last(), map(() => -1));
+      const obs2 = merge(obsA, obsB);
+      const source = setupData.dataSample === 'cont' ? obs1 : obs2;
+
+      subsX2 = source.subscribe((value) => {
+        if (value < 0) {
+          deviceDataStream.next(null);
+        } else {
+          const temperature = sensorConnected === 'temperature' ? Math.floor(Math.abs(90 * Math.sin(value/11)) * 10) / 10 : null;
+          const voltage = sensorConnected === 'voltage' ? Math.floor(12 * Math.sin(value/7) *10) / 10 : null;
+          const data: DeviceDataStream = { temperature, voltage };
+          deviceDataStream.next(data);
+        }
       });
     }
   });
