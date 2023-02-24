@@ -1,3 +1,5 @@
+export type ClientType = 'leader' | 'member' | null;
+
 export type ModeSelect = 'manual' | 'project' | null;
 export type FuncSelect = 'data_setup' | 'sensors' | 'heater' | 'rgb_spect' | null;
 export type SensorSelect = 'temperature' | 'voltage' | null;
@@ -21,10 +23,20 @@ export interface DeviceStatus {
 
 export interface DeviceStatusUpdate {
   leaderSelected?: string | null;
-  memberJoined?: string | null;
+  memberJoined?: string;
+  memberUnjoin?: string;
   modeSelected?: ModeSelect;
   funcSelected?: FuncSelect;
   resetAll?: boolean;
   setupData?: SetupData;
   sensorConnected?: SensorSelect;
+}
+
+export interface DeviceDataStream {
+  temperature: number | null;
+  voltage: number | null;
+}
+
+export interface DeviceDataStatusUpdate {
+  sensorExperiment?: boolean;
 }

@@ -1,5 +1,5 @@
 import { BehaviorSubject } from 'rxjs';
-import { DeviceStatus } from '../types/common';
+import { DeviceStatus, DeviceDataStream } from '../types/common';
 
 export const initialDeviceStatus: DeviceStatus = {
   deviceName: 'LabHub',
@@ -13,4 +13,5 @@ export const initialDeviceStatus: DeviceStatus = {
   sensorConnected: null,
 };
 
-export const deviceStatus = new BehaviorSubject<DeviceStatus | null>(initialDeviceStatus);
+export const deviceStatus = new BehaviorSubject<DeviceStatus>(initialDeviceStatus);
+export const deviceDataStream = new BehaviorSubject<DeviceDataStream | null>(null);
