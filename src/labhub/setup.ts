@@ -38,7 +38,7 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     if (sensorExperiment === true) {
       experimentActive = true;
       const sensorConnected = deviceStatus.value.sensorConnected;
-      subsX2 = interval(3500).subscribe((value) => {
+      subsX2 = interval(1000).subscribe((value) => {
         const temperature = sensorConnected === 'temperature' ? Math.floor(Math.abs(90 * Math.sin(value/11)) * 10) / 10 : null;
         const voltage = sensorConnected === 'voltage' ? Math.floor(12 * Math.sin(value/7) *10) / 10 : null;
         const data: DeviceDataStream = { temperature, voltage };
