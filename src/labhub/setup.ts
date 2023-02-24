@@ -1,4 +1,4 @@
-import { timer, merge, take, last, map, Subscription } from 'rxjs';
+import { timer, take, concat, of, Subscription } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { DeviceStatus, DeviceStatusUpdate, DeviceDataStream, DeviceDataStatusUpdate } from '../types/common';
@@ -44,9 +44,7 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
       const dataRateMs = dataRate * 1000;
 
       const obs1 = timer(0, dataRateMs);
-      const obsA = timer(0, dataRateMs).pipe(take(setupData.dataSample as number));
-      const obsB = obsA.pipe(last(), map(() => -1));
-      const obs2 = merge(obsA, obsB);
+      const obs2 = concat(timer(0, dataRateMs).pipe(take(setupData.dataSample as number)), of(-1));
       const source = setupData.dataSample === 'cont' ? obs1 : obs2;
 
       subsX2 = source.subscribe((value) => {
