@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import dotenv from 'dotenv';
 import errorHandler from './utils/error-handler';
 import indexHandler from './api';
-import { initSetup } from './labhub/setup';
+import { initSetup, uninitSetup } from './labhub/setup';
 
 dotenv.config();
 
@@ -52,6 +52,7 @@ io.on('connection', (socket) => {
     // console.log('disconnected:', reason);
     subs1.unsubscribe();
     subs2.unsubscribe();
+    uninitSetup(socket);
   });
 });
 

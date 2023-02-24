@@ -5,18 +5,25 @@ import { DeviceStatus, DeviceStatusUpdate, DeviceDataStream, DeviceDataStatusUpd
 import { TOPIC_DEVICE_STATUS, TOPIC_DEVICE_STATUS_UPDATE, TOPIC_DEVICE_DATA_STREAM, TOPIC_DEVICE_DATA_STATUS_UPDATE } from '../utils/const';
 import { getUpdatedDeviceStatus } from './actions';
 import { deviceStatus, deviceDataStream } from './status';
+import { getClientType } from './utils';
+
+function updateDeviceStatus(value: DeviceStatusUpdate, callback?: Function) {
+  const deviceStatusNew = getUpdatedDeviceStatus(value);
+  if (deviceStatusNew !== null) {
+    deviceStatus.next(deviceStatusNew);
+    if (callback) callback();
+  }
+}
 
 export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => {  
   socket.emit(TOPIC_DEVICE_STATUS, deviceStatus.value);
 
   socket.on(TOPIC_DEVICE_STATUS_UPDATE, (value: DeviceStatusUpdate) => {
-    const deviceStatusNew = getUpdatedDeviceStatus(value);
-    if (deviceStatusNew !== null) {
-      deviceStatus.next(deviceStatusNew);
+    updateDeviceStatus(value, () => {
       if (value.sensorConnected === null) {
         resetDeviceDataStream();
-      }
-    }
+      }  
+    });
   });
 
   const subs1 = deviceStatus.subscribe((value) => {
@@ -65,4 +72,14 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
   });
 
   return [subs1, subs2];
+};
+
+export const uninitSetup = (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => {
+  const clientId = socket.handshake.query.clientId as string;
+  const clientType = getClientType(clientId);
+  if (clientType === 'leader') {
+    updateDeviceStatus({ leaderSelected: null });
+  } else if (clientType === 'member') {
+    updateDeviceStatus({ memberUnjoin: clientId });
+  }
 };
