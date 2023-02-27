@@ -7,8 +7,6 @@ export const initialDeviceStatus: DeviceStatus = {
   batteryLevel: 75,
   leaderSelected: null,
   membersJoined: [],
-  modeSelected: null,
-  funcSelected: null,
   setupData: { dataRate: 1, dataSample: 'cont' },
   sensorConnected: null,
 };

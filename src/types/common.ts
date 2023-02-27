@@ -1,7 +1,5 @@
 export type ClientType = 'leader' | 'member' | null;
 
-export type ModeSelect = 'manual' | 'project' | null;
-export type FuncSelect = 'data_setup' | 'sensor' | 'heater' | 'rgb_spect' | null;
 export type SensorSelect = 'temperature' | 'voltage' | null;
 
 export interface SetupData {
@@ -15,8 +13,6 @@ export interface DeviceStatus {
   batteryLevel: number;  // in percentage
   leaderSelected: string | null;  // leader ID
   membersJoined: string[];
-  modeSelected: ModeSelect;
-  funcSelected: FuncSelect;
   setupData: SetupData;
   sensorConnected: SensorSelect;
 }
@@ -25,8 +21,6 @@ export interface DeviceStatusUpdate {
   leaderSelected?: string | null;
   memberJoined?: string;
   memberUnjoin?: string;
-  modeSelected?: ModeSelect;
-  funcSelected?: FuncSelect;
   resetAll?: boolean;
   setupData?: SetupData;
   sensorConnected?: SensorSelect;
