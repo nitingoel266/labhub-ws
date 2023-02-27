@@ -1,7 +1,7 @@
 export type ClientType = 'leader' | 'member' | null;
 
 export type ModeSelect = 'manual' | 'project' | null;
-export type FuncSelect = 'data_setup' | 'sensors' | 'heater' | 'rgb_spect' | null;
+export type FuncSelect = 'data_setup' | 'sensor' | 'heater' | 'rgb_spect' | null;
 export type SensorSelect = 'temperature' | 'voltage' | null;
 
 export interface SetupData {
