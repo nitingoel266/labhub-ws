@@ -19,7 +19,7 @@ export interface DeviceStatus {
 
 export interface DeviceStatusUpdate {
   leaderSelected?: string | null;
-  memberJoined?: string;
+  // memberJoined?: string;
   memberUnjoin?: string;
   resetAll?: boolean;
   setupData?: SetupData;

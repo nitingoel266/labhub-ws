@@ -16,6 +16,13 @@ function updateDeviceStatus(value: DeviceStatusUpdate, callback?: Function) {
 }
 
 export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => {  
+  const clientId = socket.handshake.query.clientId as string;
+  const clientType = getClientType(clientId);
+  if (clientId && clientType === null) {
+    deviceStatus.value.membersJoined.push(clientId);
+    deviceStatus.next(deviceStatus.value);  // mark as updated
+  }
+
   socket.emit(TOPIC_DEVICE_STATUS, deviceStatus.value);
 
   socket.on(TOPIC_DEVICE_STATUS_UPDATE, (value: DeviceStatusUpdate) => {
@@ -77,8 +84,10 @@ export const uninitSetup = (socket: Socket<DefaultEventsMap, DefaultEventsMap, D
   const clientId = socket.handshake.query.clientId as string;
   const clientType = getClientType(clientId);
   if (clientType === 'leader') {
-    updateDeviceStatus({ leaderSelected: null });
+    updateDeviceStatus({ leaderSelected: null }, () => {  // downgrade to member
+      updateDeviceStatus({ memberUnjoin: clientId });  // remove client
+    });
   } else if (clientType === 'member') {
-    updateDeviceStatus({ memberUnjoin: clientId });
+    updateDeviceStatus({ memberUnjoin: clientId });  // remove client
   }
 };
