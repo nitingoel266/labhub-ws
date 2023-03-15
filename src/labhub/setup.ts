@@ -53,7 +53,7 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
       experimentActive = true;
       const { sensorConnected, setupData } = deviceStatus.value;
 
-      const dataRate = setupData.dataRate === 'manual' ? 1 : setupData.dataRate;
+      const dataRate = setupData.dataRate === 'user' ? 1 : setupData.dataRate;
       const dataRateMs = dataRate * 1000;
 
       const obs1 = timer(0, dataRateMs);

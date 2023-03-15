@@ -3,7 +3,7 @@ export type ClientType = 'leader' | 'member' | null;
 export type SensorSelect = 'temperature' | 'voltage' | null;
 
 export interface SetupData {
-  dataRate: 1 | 5 | 10 | 30 | 60 | 600 | 1800 | 3600 | 'manual';
+  dataRate: 1 | 5 | 10 | 30 | 60 | 600 | 1800 | 3600 | 'user';
   dataSample: 'cont' | 5 | 10 | 25 | 50 | 100 | 200;
 }
 
