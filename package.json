@@ -1,6 +1,6 @@
 {
   "name": "labhub_ws",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "labhub_ws",
   "main": "index.js",
   "type": "module",
