@@ -1,11 +1,20 @@
 import { timer, take, concat, of, Subscription } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
-import { DeviceStatus, DeviceStatusUpdate, DeviceDataStream, DeviceDataStatusUpdate } from '../types/common';
-import { TOPIC_DEVICE_STATUS, TOPIC_DEVICE_STATUS_UPDATE, TOPIC_DEVICE_DATA_STREAM, TOPIC_DEVICE_DATA_STATUS_UPDATE } from '../utils/const';
+import { DeviceStatus, DeviceStatusUpdate, DeviceDataStream, DeviceDataStatusUpdate, DeviceDataFeed } from '../types/common';
+import { TOPIC_DEVICE_STATUS, TOPIC_DEVICE_STATUS_UPDATE, TOPIC_DEVICE_DATA_STREAM, TOPIC_DEVICE_DATA_STATUS_UPDATE, TOPIC_DEVICE_DATA_FEED } from '../utils/const';
 import { getUpdatedDeviceStatus } from './actions';
 import { deviceStatus, deviceDataStream } from './status';
 import { getClientType } from './utils';
+
+let subsX2: Subscription;
+let experimentActive = false;
+
+function resetDeviceDataStream() {
+  experimentActive = false;
+  if (subsX2) subsX2.unsubscribe();
+  deviceDataStream.next(null);
+}
 
 function updateDeviceStatus(value: DeviceStatusUpdate, callback?: Function) {
   const deviceStatusNew = getUpdatedDeviceStatus(value);
@@ -36,14 +45,6 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
   const subs1 = deviceStatus.subscribe((value) => {
     socket.emit(TOPIC_DEVICE_STATUS, value);
   });
-
-  let subsX2: Subscription;
-  let experimentActive = false;
-  function resetDeviceDataStream() {
-    experimentActive = false;
-    if (subsX2) subsX2.unsubscribe();
-    deviceDataStream.next(null);
-  }
 
   socket.on(TOPIC_DEVICE_DATA_STATUS_UPDATE, ({ sensorExperiment }: DeviceDataStatusUpdate) => {
     if (sensorExperiment === false || experimentActive) {
@@ -77,7 +78,14 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     socket.emit(TOPIC_DEVICE_DATA_STREAM, value);
   });
 
-  return [subs1, subs2];
+  const subs3 = timer(0, 1000).subscribe(() => {
+    const deviceDataFeedValue: DeviceDataFeed = {
+      sensor: deviceDataStream.value,
+    };
+    socket.emit(TOPIC_DEVICE_DATA_FEED, deviceDataFeedValue);
+  });
+
+  return [subs1, subs2, subs3];
 };
 
 export const uninitSetup = (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => {
@@ -85,7 +93,12 @@ export const uninitSetup = (socket: Socket<DefaultEventsMap, DefaultEventsMap, D
   const clientType = getClientType(clientId);
   if (clientType === 'leader') {
     updateDeviceStatus({ leaderSelected: null }, () => {  // downgrade to member
-      updateDeviceStatus({ memberUnjoin: clientId });  // remove client
+      updateDeviceStatus({
+        memberUnjoin: clientId,  // remove client
+        sensorConnected: null,   // disconnect sensor
+      }, () => {
+        resetDeviceDataStream();  // reset sensor stream
+      });
     });
   } else if (clientType === 'member') {
     updateDeviceStatus({ memberUnjoin: clientId });  // remove client

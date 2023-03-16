@@ -34,3 +34,7 @@ export interface DeviceDataStream {
 export interface DeviceDataStatusUpdate {
   sensorExperiment?: boolean;
 }
+
+export interface DeviceDataFeed {
+  sensor: DeviceDataStream | null;
+}
