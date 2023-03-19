@@ -46,13 +46,12 @@ const io = new Server(httpServer, {
 
 io.on('connection', (socket) => {
   // console.log(socket.connected, socket.id);
-  const [subs1, subs2, subs3] = initSetup(io, socket);
+  const [subs1, subs2] = initSetup(io, socket);
 
   socket.on('disconnect', (reason) => {
     // console.log('disconnected:', reason);
     subs1.unsubscribe();
     subs2.unsubscribe();
-    subs3.unsubscribe();
     uninitSetup(socket);
   });
 });

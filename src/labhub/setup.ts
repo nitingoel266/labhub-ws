@@ -2,7 +2,7 @@ import { timer, take, concat, of, Subscription } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { DeviceStatus, DeviceStatusUpdate, DeviceDataStream, DeviceDataStatusUpdate, DeviceDataFeed, HeaterDataStream, RgbDataStream } from '../types/common';
-import { TOPIC_DEVICE_STATUS, TOPIC_DEVICE_STATUS_UPDATE, TOPIC_DEVICE_DATA_STREAM, TOPIC_DEVICE_DATA_STATUS_UPDATE, TOPIC_DEVICE_DATA_FEED } from '../utils/const';
+import { TOPIC_DEVICE_STATUS, TOPIC_DEVICE_STATUS_UPDATE, TOPIC_DEVICE_DATA_STATUS_UPDATE, TOPIC_DEVICE_DATA_FEED } from '../utils/const';
 import { getUpdatedDeviceStatus } from './actions';
 import { deviceStatus, deviceDataStream, heaterDataStream, rgbDataStream } from './status';
 import { getClientType } from './utils';
@@ -149,11 +149,7 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     }
   });
 
-  const subs2 = deviceDataStream.subscribe((value) => {
-    socket.emit(TOPIC_DEVICE_DATA_STREAM, value);
-  });
-
-  const subs3 = timer(0, 1000).subscribe(() => {
+  const subs2 = timer(0, 1000).subscribe(() => {
     const deviceDataFeedValue: DeviceDataFeed = {
       sensor: deviceDataStream.value,
       heater: heaterDataStream.value,
@@ -162,7 +158,7 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     socket.emit(TOPIC_DEVICE_DATA_FEED, deviceDataFeedValue);
   });
 
-  return [subs1, subs2, subs3];
+  return [subs1, subs2];
 };
 
 export const uninitSetup = (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => {
