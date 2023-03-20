@@ -9,7 +9,7 @@ export const initialDeviceStatus: DeviceStatus = {
   membersJoined: [],
   setupData: { dataRate: 1, dataSample: 'cont' },
   sensorConnected: null,
-  setpointTemp: 30,  // default setpoint temperature (in *C)
+  setpointTemp: 25,  // default setpoint temperature (in *C)
   heaterConnected: null,
   rgbCalibrated: false,
   rgbConnected: null,
