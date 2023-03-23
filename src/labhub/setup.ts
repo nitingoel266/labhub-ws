@@ -12,9 +12,13 @@ let subsX2: Subscription;
 let subsX3: Subscription;
 let experimentActive = false;
 let currTemp = 20;
+let temperatureLog: number[] = [];
+let voltageLog: number[] = [];
 
 function resetDeviceDataStream() {
   experimentActive = false;
+  temperatureLog = [];
+  voltageLog = [];
   if (subsX1) subsX1.unsubscribe();
   deviceDataStream.next(null);
 }
@@ -87,11 +91,22 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
 
       subsX1 = source.subscribe((value) => {
         if (value < 0) {
-          deviceDataStream.next(null);
+          resetDeviceDataStream();
         } else {
-          const temperature = sensorConnected === 'temperature' ? Math.floor(Math.abs(90 * Math.sin(value/11)) * 10) / 10 : null;
-          const voltage = sensorConnected === 'voltage' ? Math.floor(12 * Math.sin(value/7) *10) / 10 : null;
-          const data: DeviceDataStream = { temperature, voltage };
+          let temperature = null;
+          let voltage = null;
+          if (sensorConnected === 'temperature') {
+            temperature = Math.floor(Math.abs(90 * Math.sin(value/11)) * 10) / 10;
+            if (typeof deviceDataStream.value?.temperature === 'number') {
+              temperatureLog.push(deviceDataStream.value.temperature);
+            }
+          } else if (sensorConnected === 'voltage') {
+            voltage = Math.floor(12 * Math.sin(value/7) *10) / 10;
+            if (typeof deviceDataStream.value?.voltage === 'number') {
+              voltageLog.push(deviceDataStream.value.voltage);
+            }
+          }
+          const data: DeviceDataStream = { temperature, temperatureLog, voltage, voltageLog };
           deviceDataStream.next(data);
         }
       });

@@ -38,7 +38,9 @@ export interface DeviceStatusUpdate {
 
 export interface DeviceDataStream {
   temperature: number | null;
+  temperatureLog: number[];
   voltage: number | null;
+  voltageLog: number[];
 }
 
 export interface HeaterDataStream {
