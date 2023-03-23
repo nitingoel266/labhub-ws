@@ -130,8 +130,8 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
           subsX3 = source.subscribe((value) => {
             const calibrateTest = rgbDataStream.value?.calibrateTest || [null, null, null];
             if (value === 0) calibrateTest[value] = 0;
-            if (value === 1) calibrateTest[value] = -0.01;
-            if (value === 2) calibrateTest[value] = 0.02;
+            if (value === 1) calibrateTest[value] = -0.1;
+            if (value === 2) calibrateTest[value] = 0.2;
             const data: RgbDataStream = { calibrateTest, measure: null };
             rgbDataStream.next(data);
           });
