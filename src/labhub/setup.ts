@@ -1,4 +1,4 @@
-import { timer, take, concat, of, Subscription } from 'rxjs';
+import { Subscription, timer, take, concat, of, merge } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { DeviceStatus, DeviceStatusUpdate, DeviceDataStream, DeviceDataStatusUpdate, DeviceDataFeed, HeaterDataStream, RgbDataStream } from '../types/common';
@@ -149,7 +149,8 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     }
   });
 
-  const subs2 = timer(0, 1000).subscribe(() => {
+  const source = merge(deviceDataStream, heaterDataStream, rgbDataStream);
+  const subs2 = source.subscribe(() => {
     const deviceDataFeedValue: DeviceDataFeed = {
       sensor: deviceDataStream.value,
       heater: heaterDataStream.value,
