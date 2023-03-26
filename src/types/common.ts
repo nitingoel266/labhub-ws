@@ -12,6 +12,8 @@ export interface SetupData {
 export interface DeviceStatus {
   deviceName: string;
   deviceVersion: string;
+  deviceSerial: string;
+  deviceManufacturer: string;
   batteryLevel: number;  // in percentage
   leaderSelected: string | null;  // leader ID
   membersJoined: string[];

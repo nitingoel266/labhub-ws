@@ -4,6 +4,8 @@ import { DeviceStatus, SensorDataStream, HeaterDataStream, RgbDataStream } from 
 export const initialDeviceStatus: DeviceStatus = {
   deviceName: 'LabHub',
   deviceVersion: '2.10',
+  deviceSerial: '',
+  deviceManufacturer: '',
   batteryLevel: 75,
   leaderSelected: null,
   membersJoined: [],
