@@ -36,7 +36,7 @@ export interface DeviceStatusUpdate {
   rgbConnected?: RgbFuncSelect;
 }
 
-export interface DeviceDataStream {
+export interface SensorDataStream {
   temperature: number | null;
   temperatureLog: number[];
   voltage: number | null;
@@ -53,14 +53,14 @@ export interface RgbDataStream {
   measure: [number | null, number | null, number | null] | null;         // [r, g, b]
 }
 
-export interface DeviceDataStatusUpdate {
+export interface DeviceDataFeedUpdate {
   sensorExperiment?: boolean;
   heaterExperiment?: boolean;
   rgbExperiment?: boolean;
 }
 
 export interface DeviceDataFeed {
-  sensor: DeviceDataStream | null;
+  sensor: SensorDataStream | null;
   heater: HeaterDataStream | null;
   rgb: RgbDataStream | null;
 }

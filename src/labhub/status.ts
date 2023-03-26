@@ -1,5 +1,5 @@
 import { BehaviorSubject } from 'rxjs';
-import { DeviceStatus, DeviceDataStream, HeaterDataStream, RgbDataStream } from '../types/common';
+import { DeviceStatus, SensorDataStream, HeaterDataStream, RgbDataStream } from '../types/common';
 
 export const initialDeviceStatus: DeviceStatus = {
   deviceName: 'LabHub',
@@ -16,6 +16,6 @@ export const initialDeviceStatus: DeviceStatus = {
 };
 
 export const deviceStatus = new BehaviorSubject<DeviceStatus>(initialDeviceStatus);
-export const deviceDataStream = new BehaviorSubject<DeviceDataStream | null>(null);
+export const sensorDataStream = new BehaviorSubject<SensorDataStream | null>(null);
 export const heaterDataStream = new BehaviorSubject<HeaterDataStream | null>(null);
 export const rgbDataStream = new BehaviorSubject<RgbDataStream | null>(null);

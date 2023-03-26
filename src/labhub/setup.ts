@@ -1,10 +1,10 @@
 import { Subscription, timer, take, concat, of, merge } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
-import { DeviceStatus, DeviceStatusUpdate, DeviceDataStream, DeviceDataStatusUpdate, DeviceDataFeed, HeaterDataStream, RgbDataStream } from '../types/common';
-import { TOPIC_DEVICE_STATUS, TOPIC_DEVICE_STATUS_UPDATE, TOPIC_DEVICE_DATA_STATUS_UPDATE, TOPIC_DEVICE_DATA_FEED } from '../utils/const';
+import { DeviceStatus, DeviceStatusUpdate, SensorDataStream, DeviceDataFeed, DeviceDataFeedUpdate, HeaterDataStream, RgbDataStream } from '../types/common';
+import { TOPIC_DEVICE_STATUS, TOPIC_DEVICE_STATUS_UPDATE, TOPIC_DEVICE_DATA_FEED, TOPIC_DEVICE_DATA_FEED_UPDATE } from '../utils/const';
 import { getUpdatedDeviceStatus } from './actions';
-import { deviceStatus, deviceDataStream, heaterDataStream, rgbDataStream } from './status';
+import { deviceStatus, sensorDataStream, heaterDataStream, rgbDataStream } from './status';
 import { getClientType } from './utils';
 
 let subsX1: Subscription;
@@ -15,12 +15,12 @@ let currTemp = 20;
 let temperatureLog: number[] = [];
 let voltageLog: number[] = [];
 
-function resetDeviceDataStream() {
+function resetSensorDataStream() {
   experimentActive = false;
   temperatureLog = [];
   voltageLog = [];
   if (subsX1) subsX1.unsubscribe();
-  deviceDataStream.next(null);
+  sensorDataStream.next(null);
 }
 
 function resetHeaterDataStream() {
@@ -59,7 +59,7 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
   socket.on(TOPIC_DEVICE_STATUS_UPDATE, (value: DeviceStatusUpdate) => {
     updateDeviceStatus(value, () => {
       if (value.sensorConnected === null) {
-        resetDeviceDataStream();
+        resetSensorDataStream();
       }
       if (value.heaterConnected === null) {
         resetHeaterDataStream();
@@ -74,9 +74,9 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     socket.emit(TOPIC_DEVICE_STATUS, value);
   });
 
-  socket.on(TOPIC_DEVICE_DATA_STATUS_UPDATE, ({ sensorExperiment, heaterExperiment, rgbExperiment }: DeviceDataStatusUpdate) => {
+  socket.on(TOPIC_DEVICE_DATA_FEED_UPDATE, ({ sensorExperiment, heaterExperiment, rgbExperiment }: DeviceDataFeedUpdate) => {
     if (sensorExperiment === false || experimentActive) {
-      resetDeviceDataStream();
+      resetSensorDataStream();
     }
     if (sensorExperiment === true) {
       experimentActive = true;
@@ -91,23 +91,23 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
 
       subsX1 = source.subscribe((value) => {
         if (value < 0) {
-          resetDeviceDataStream();
+          resetSensorDataStream();
         } else {
           let temperature = null;
           let voltage = null;
           if (sensorConnected === 'temperature') {
             temperature = Math.floor(Math.abs(90 * Math.sin(value/11)) * 10) / 10;
-            if (typeof deviceDataStream.value?.temperature === 'number') {
-              temperatureLog.push(deviceDataStream.value.temperature);
+            if (typeof sensorDataStream.value?.temperature === 'number') {
+              temperatureLog.push(sensorDataStream.value.temperature);
             }
           } else if (sensorConnected === 'voltage') {
             voltage = Math.floor(12 * Math.sin(value/7) *10) / 10;
-            if (typeof deviceDataStream.value?.voltage === 'number') {
-              voltageLog.push(deviceDataStream.value.voltage);
+            if (typeof sensorDataStream.value?.voltage === 'number') {
+              voltageLog.push(sensorDataStream.value.voltage);
             }
           }
-          const data: DeviceDataStream = { temperature, temperatureLog, voltage, voltageLog };
-          deviceDataStream.next(data);
+          const data: SensorDataStream = { temperature, temperatureLog, voltage, voltageLog };
+          sensorDataStream.next(data);
         }
       });
     }
@@ -164,10 +164,10 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     }
   });
 
-  const source = merge(deviceDataStream, heaterDataStream, rgbDataStream);
+  const source = merge(sensorDataStream, heaterDataStream, rgbDataStream);
   const subs2 = source.subscribe(() => {
     const deviceDataFeedValue: DeviceDataFeed = {
-      sensor: deviceDataStream.value,
+      sensor: sensorDataStream.value,
       heater: heaterDataStream.value,
       rgb: rgbDataStream.value,
     };
@@ -188,7 +188,7 @@ export const uninitSetup = (socket: Socket<DefaultEventsMap, DefaultEventsMap, D
         heaterConnected: null,    // disconnect heater
         rgbConnected: null,       // disconnect spectrophotometer
       }, () => {
-        resetDeviceDataStream();  // reset sensor stream
+        resetSensorDataStream();  // reset sensor stream
         resetHeaterDataStream();  // reset heater stream
         resetRgbDataStream();     // reset spectrophotometer stream
       });
