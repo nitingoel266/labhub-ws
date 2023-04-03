@@ -15,6 +15,7 @@ export const initialDeviceStatus: DeviceStatus = {
   heaterConnected: null,
   rgbCalibrated: false,
   rgbConnected: null,
+  screenNumber: null,
 };
 
 export const deviceStatus = new BehaviorSubject<DeviceStatus>(initialDeviceStatus);

@@ -23,6 +23,7 @@ export interface DeviceStatus {
   heaterConnected: HeaterSelect;
   rgbCalibrated: boolean;
   rgbConnected: RgbFuncSelect;
+  screenNumber: number | null;
 }
 
 export interface DeviceStatusUpdate {
@@ -36,6 +37,7 @@ export interface DeviceStatusUpdate {
   heaterConnected?: HeaterSelect;
   rgbCalibrated?: boolean;
   rgbConnected?: RgbFuncSelect;
+  screenNumber?: number;
 }
 
 export interface SensorDataStream {
