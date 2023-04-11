@@ -110,6 +110,14 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
           sensorDataStream.next(data);
         }
       });
+
+      if (sensorConnected === 'temperature') {
+        deviceStatus.value.operation = 'measure_temperature';
+        deviceStatus.next(deviceStatus.value);
+      } else if (sensorConnected === 'voltage') {
+        deviceStatus.value.operation = 'measure_voltage';
+        deviceStatus.next(deviceStatus.value);
+      }
     }
 
     if (heaterExperiment === false || experimentActive) {
@@ -131,6 +139,9 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
         const data: HeaterDataStream = { element, probe };
         heaterDataStream.next(data);
       });
+
+      deviceStatus.value.operation = 'heater_control';
+      deviceStatus.next(deviceStatus.value);
     }
 
     if (rgbExperiment === false || experimentActive) {
@@ -150,6 +161,9 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
             const data: RgbDataStream = { calibrateTest, measure: null };
             rgbDataStream.next(data);
           });
+
+          deviceStatus.value.operation = 'rgb_calibrate';
+          deviceStatus.next(deviceStatus.value);    
         } else if (rgbConnected === 'measure') {
           subsX3 = source.subscribe((value) => {
             const measure = rgbDataStream.value?.measure || [null, null, null];
@@ -159,6 +173,9 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
             const data: RgbDataStream = { calibrateTest: null, measure };
             rgbDataStream.next(data);
           });
+
+          deviceStatus.value.operation = 'rgb_measure';
+          deviceStatus.next(deviceStatus.value);    
         }
       }
     }

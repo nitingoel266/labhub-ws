@@ -16,6 +16,7 @@ export const initialDeviceStatus: DeviceStatus = {
   rgbCalibrated: false,
   rgbConnected: null,
   screenNumber: null,
+  operation: null,
 };
 
 export const deviceStatus = new BehaviorSubject<DeviceStatus>(initialDeviceStatus);

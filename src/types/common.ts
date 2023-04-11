@@ -9,6 +9,13 @@ export interface SetupData {
   dataSample: 'cont' | 5 | 10 | 25 | 50 | 100 | 200;
 }
 
+export type LeaderOperation = null 
+  | 'measure_temperature'
+  | 'measure_voltage'
+  | 'heater_control'
+  | 'rgb_calibrate'
+  | 'rgb_measure';
+
 export interface DeviceStatus {
   deviceName: string;
   deviceVersion: string;
@@ -24,6 +31,7 @@ export interface DeviceStatus {
   rgbCalibrated: boolean;
   rgbConnected: RgbFuncSelect;
   screenNumber: number | null;
+  operation: LeaderOperation;
 }
 
 export interface DeviceStatusUpdate {
