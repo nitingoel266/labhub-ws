@@ -30,12 +30,17 @@ function resetHeaterDataStream() {
   heaterDataStream.next(null);
 }
 
-function resetRgbDataStream() {
+function resetRgbDataStream(softReset?: boolean) {
   experimentActive = false;
   if (subsX3) subsX3.unsubscribe();
-  updateDeviceStatus({ rgbCalibrated: false }, () => {
+
+  if (softReset) {
     rgbDataStream.next(null);
-  });
+  } else {
+    updateDeviceStatus({ rgbCalibrated: false }, () => {
+      rgbDataStream.next(null);
+    });
+  }
 }
 
 function updateDeviceStatus(value: DeviceStatusUpdate, callback?: Function) {
@@ -75,9 +80,24 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
   });
 
   socket.on(TOPIC_DEVICE_DATA_FEED_UPDATE, ({ sensorExperiment, heaterExperiment, rgbExperiment }: DeviceDataFeedUpdate) => {
-    if (sensorExperiment === false || experimentActive) {
+    if (sensorExperiment === false) {
       resetSensorDataStream();
     }
+
+    if (heaterExperiment === false) {
+      resetHeaterDataStream();
+    }
+    
+    if (rgbExperiment === false) {
+      resetRgbDataStream();
+    }
+
+    if (experimentActive) {
+      resetSensorDataStream();
+      resetHeaterDataStream();
+      resetRgbDataStream(true);
+    }
+
     if (sensorExperiment === true) {
       experimentActive = true;
       const { sensorConnected, setupData } = deviceStatus.value;
@@ -120,9 +140,6 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
       }
     }
 
-    if (heaterExperiment === false || experimentActive) {
-      resetHeaterDataStream();
-    }
     if (heaterExperiment === true) {
       experimentActive = true;
       const { heaterConnected } = deviceStatus.value;
@@ -144,13 +161,11 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
       deviceStatus.next(deviceStatus.value);
     }
 
-    if (rgbExperiment === false || experimentActive) {
-      resetRgbDataStream();
-    }
     if (rgbExperiment === true) {
       const { rgbConnected, rgbCalibrated } = deviceStatus.value;
       if (rgbCalibrated) {
         experimentActive = true;
+
         const source = timer(0, 1000).pipe(take(3));
         if (rgbConnected === 'calibrate_test') {
           subsX3 = source.subscribe((value) => {
