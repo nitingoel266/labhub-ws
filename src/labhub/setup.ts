@@ -84,6 +84,7 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     const sc: any = { ...value };
     delete sc.temperatureLog;
     delete sc.voltageLog;
+    // delete sc.screenNumber;  TOOD: delete on resolve [587678]
     socket.emit(TOPIC_DEVICE_STATUS, sc);
   });
 
