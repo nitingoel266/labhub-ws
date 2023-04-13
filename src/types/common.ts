@@ -30,7 +30,7 @@ export interface DeviceStatus {
   heaterConnected: HeaterSelect;
   rgbCalibrated: boolean;
   rgbConnected: RgbFuncSelect;
-  screenNumber: number | null;
+  screenNumber: number | null; // temp: 587678
   operation: LeaderOperation;
   temperatureLog: number[];
   voltageLog: number[];
@@ -86,10 +86,12 @@ export interface ClientChannelResponse {
   requestId: string;
   temperatureLog: number[] | null;
   voltageLog: number[] | null;
+  screenNumber: number | null;
 }
 
 export interface ClientChannelRequest {
   requestId: string;
   temperatureIndex?: number;
   voltageIndex?: number;
+  getScreenNumber?: boolean;
 }

@@ -227,16 +227,19 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     socket.emit(TOPIC_DEVICE_DATA_FEED, deviceDataFeedValue);
   });
 
-  socket.on(TOPIC_CLIENT_CHANNEL, ({ requestId, temperatureIndex, voltageIndex }: ClientChannelRequest, callback) => {
+  socket.on(TOPIC_CLIENT_CHANNEL, ({ requestId, temperatureIndex, voltageIndex, getScreenNumber }: ClientChannelRequest, callback) => {
     const clientChannelResp: ClientChannelResponse = {
       requestId,
       temperatureLog: null,
       voltageLog: null,
+      screenNumber: null,
     };
     if (typeof temperatureIndex === 'number' && temperatureIndex >= 0) {
       clientChannelResp.temperatureLog = deviceStatus.value.temperatureLog.slice(0, temperatureIndex);
     } else if (typeof voltageIndex === 'number' && voltageIndex >= 0) {
       clientChannelResp.voltageLog = deviceStatus.value.voltageLog.slice(0, voltageIndex);
+    } else if (getScreenNumber === true) {
+      clientChannelResp.screenNumber = deviceStatus.value.screenNumber;
     }
 
     // Acknowledgement: Sent to only the client that initiated the communication
