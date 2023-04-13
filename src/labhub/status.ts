@@ -17,6 +17,8 @@ export const initialDeviceStatus: DeviceStatus = {
   rgbConnected: null,
   screenNumber: null,
   operation: null,
+  temperatureLog: [],
+  voltageLog: [],
 };
 
 export const deviceStatus = new BehaviorSubject<DeviceStatus>(initialDeviceStatus);

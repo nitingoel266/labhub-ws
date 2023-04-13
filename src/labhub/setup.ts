@@ -1,8 +1,8 @@
 import { Subscription, timer, take, concat, of, merge } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
-import { DeviceStatus, DeviceStatusUpdate, SensorDataStream, DeviceDataFeed, DeviceDataFeedUpdate, HeaterDataStream, RgbDataStream } from '../types/common';
-import { TOPIC_DEVICE_STATUS, TOPIC_DEVICE_STATUS_UPDATE, TOPIC_DEVICE_DATA_FEED, TOPIC_DEVICE_DATA_FEED_UPDATE } from '../utils/const';
+import { DeviceStatus, DeviceStatusUpdate, SensorDataStream, DeviceDataFeed, DeviceDataFeedUpdate, HeaterDataStream, RgbDataStream, ClientChannelRequest, ClientChannelResponse } from '../types/common';
+import { TOPIC_DEVICE_STATUS, TOPIC_DEVICE_STATUS_UPDATE, TOPIC_DEVICE_DATA_FEED, TOPIC_DEVICE_DATA_FEED_UPDATE, TOPIC_CLIENT_CHANNEL } from '../utils/const';
 import { getUpdatedDeviceStatus } from './actions';
 import { deviceStatus, sensorDataStream, heaterDataStream, rgbDataStream } from './status';
 import { getClientType } from './utils';
@@ -19,6 +19,11 @@ function resetSensorDataStream() {
   experimentActive = false;
   temperatureLog = [];
   voltageLog = [];
+
+  deviceStatus.value.temperatureLog = [];
+  deviceStatus.value.voltageLog = [];
+  deviceStatus.next(deviceStatus.value);
+
   if (subsX1) subsX1.unsubscribe();
   sensorDataStream.next(null);
 }
@@ -76,7 +81,10 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
   });
 
   const subs1 = deviceStatus.subscribe((value) => {
-    socket.emit(TOPIC_DEVICE_STATUS, value);
+    const sc: any = { ...value };
+    delete sc.temperatureLog;
+    delete sc.voltageLog;
+    socket.emit(TOPIC_DEVICE_STATUS, sc);
   });
 
   socket.on(TOPIC_DEVICE_DATA_FEED_UPDATE, ({ sensorExperiment, heaterExperiment, rgbExperiment }: DeviceDataFeedUpdate) => {
@@ -126,7 +134,20 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
               voltageLog.push(sensorDataStream.value.voltage);
             }
           }
-          const data: SensorDataStream = { temperature, temperatureLog, voltage, voltageLog };
+
+          deviceStatus.value.temperatureLog = temperatureLog;
+          deviceStatus.value.voltageLog = voltageLog;
+          deviceStatus.next(deviceStatus.value);
+
+          // TODO: 376987
+          const data: SensorDataStream = {
+            temperature,
+            temperatureIndex: temperature === null ? null : temperatureLog.length,
+            temperatureLog: [],
+            voltage,
+            voltageIndex: voltage === null ? null : voltageLog.length,
+            voltageLog: [],
+          };
           sensorDataStream.next(data);
         }
       });
@@ -204,6 +225,22 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
       rgb: rgbDataStream.value,
     };
     socket.emit(TOPIC_DEVICE_DATA_FEED, deviceDataFeedValue);
+  });
+
+  socket.on(TOPIC_CLIENT_CHANNEL, ({ requestId, temperatureIndex, voltageIndex }: ClientChannelRequest, callback) => {
+    const clientChannelResp: ClientChannelResponse = {
+      requestId,
+      temperatureLog: null,
+      voltageLog: null,
+    };
+    if (typeof temperatureIndex === 'number' && temperatureIndex >= 0) {
+      clientChannelResp.temperatureLog = deviceStatus.value.temperatureLog.slice(0, temperatureIndex);
+    } else if (typeof voltageIndex === 'number' && voltageIndex >= 0) {
+      clientChannelResp.voltageLog = deviceStatus.value.voltageLog.slice(0, voltageIndex);
+    }
+
+    // Acknowledgement: Sent to only the client that initiated the communication
+    callback(clientChannelResp);
   });
 
   return [subs1, subs2];
