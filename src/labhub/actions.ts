@@ -50,8 +50,11 @@ export const getUpdatedDeviceStatus = (value: DeviceStatusUpdate) => {
         deviceStatusNew = { ...deviceStatusNew, [key]: value };
         if (clientId) addMember(deviceStatusNew.membersJoined, clientId);
       }
-    } else if (key === 'setupData' || key === 'sensorConnected' || key === 'setpointTemp' || key === 'heaterConnected' || key === 'rgbCalibrated' || key === 'rgbCalibratedAndTested' || key === 'rgbConnected' || key === 'screenNumber') {
+    } else if (key === 'setupData' || key === 'sensorConnected' || key === 'setpointTemp' || key === 'heaterConnected' || key === 'rgbCalibrated' || key === 'rgbConnected' || key === 'screenNumber') {
       deviceStatusNew = { ...deviceStatusNew, [key]: value };
+    } else if (key === 'rgbCalibratedAndTested') {
+      // NOTE: these update keys are not used on client (front-end)
+      deviceStatusNew = { ...deviceStatusNew, [key]: value as boolean };
     }
   });
 
