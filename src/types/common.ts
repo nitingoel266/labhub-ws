@@ -29,8 +29,10 @@ export interface DeviceStatus {
   setpointTemp: number;  // setpoint temperature (in *C)
   heaterConnected: HeaterSelect;
   rgbCalibrated: boolean;
+  rgbCalibratedAndTested: boolean;
   rgbConnected: RgbFuncSelect;
-  screenNumber: number | null; // temp: 587678
+  screenNumber: number | null;
+  operationPrev: LeaderOperation;
   operation: LeaderOperation;
   temperatureLog: number[];
   voltageLog: number[];
@@ -46,18 +48,16 @@ export interface DeviceStatusUpdate {
   setpointTemp?: number;
   heaterConnected?: HeaterSelect;
   rgbCalibrated?: boolean;
+  rgbCalibratedAndTested?: boolean;
   rgbConnected?: RgbFuncSelect;
   screenNumber?: number;
 }
 
-// TODO: 376987
 export interface SensorDataStream {
   temperature: number | null;
   temperatureIndex: number | null;
-  temperatureLog: number[];
   voltage: number | null;
   voltageIndex: number | null;
-  voltageLog: number[];
 }
 
 export interface HeaterDataStream {

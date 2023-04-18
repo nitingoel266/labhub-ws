@@ -1,7 +1,7 @@
 import { Subscription, timer, take, concat, of, merge } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
-import { DeviceStatus, DeviceStatusUpdate, SensorDataStream, DeviceDataFeed, DeviceDataFeedUpdate, HeaterDataStream, RgbDataStream, ClientChannelRequest, ClientChannelResponse } from '../types/common';
+import { DeviceStatus, DeviceStatusUpdate, SensorDataStream, DeviceDataFeed, DeviceDataFeedUpdate, HeaterDataStream, RgbDataStream, ClientChannelRequest, ClientChannelResponse, LeaderOperation } from '../types/common';
 import { TOPIC_DEVICE_STATUS, TOPIC_DEVICE_STATUS_UPDATE, TOPIC_DEVICE_DATA_FEED, TOPIC_DEVICE_DATA_FEED_UPDATE, TOPIC_CLIENT_CHANNEL } from '../utils/const';
 import { getUpdatedDeviceStatus } from './actions';
 import { deviceStatus, sensorDataStream, heaterDataStream, rgbDataStream } from './status';
@@ -40,9 +40,15 @@ function resetRgbDataStream(softReset?: boolean) {
   if (subsX3) subsX3.unsubscribe();
 
   if (softReset) {
-    rgbDataStream.next(null);
+    const { rgbCalibrated, rgbConnected } = deviceStatus.value;
+    if (rgbCalibrated && rgbConnected === 'measure' && rgbDataStream.value?.calibrateTest) {
+      // do not reset calibrateTest value
+      rgbDataStream.next({ calibrateTest: rgbDataStream.value.calibrateTest, measure: null });
+    } else {
+      rgbDataStream.next(null);
+    }
   } else {
-    updateDeviceStatus({ rgbCalibrated: false }, () => {
+    updateDeviceStatus({ rgbCalibrated: false, rgbCalibratedAndTested: false }, () => {
       rgbDataStream.next(null);
     });
   }
@@ -54,6 +60,11 @@ function updateDeviceStatus(value: DeviceStatusUpdate, callback?: Function) {
     deviceStatus.next(deviceStatusNew);
     if (callback) callback();
   }
+}
+
+function setOpearation(operation: LeaderOperation) {
+  deviceStatus.value.operationPrev = deviceStatus.value.operation;
+  deviceStatus.value.operation = operation;
 }
 
 export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => {  
@@ -84,7 +95,7 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     const sc: any = { ...value };
     delete sc.temperatureLog;
     delete sc.voltageLog;
-    // delete sc.screenNumber;  TOOD: delete on resolve [587678]
+    delete sc.screenNumber;
     socket.emit(TOPIC_DEVICE_STATUS, sc);
   });
 
@@ -140,24 +151,21 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
           deviceStatus.value.voltageLog = voltageLog;
           deviceStatus.next(deviceStatus.value);
 
-          // TODO: 376987
           const data: SensorDataStream = {
             temperature,
             temperatureIndex: temperature === null ? null : temperatureLog.length,
-            temperatureLog: [],
             voltage,
             voltageIndex: voltage === null ? null : voltageLog.length,
-            voltageLog: [],
           };
           sensorDataStream.next(data);
         }
       });
 
       if (sensorConnected === 'temperature') {
-        deviceStatus.value.operation = 'measure_temperature';
+        setOpearation('measure_temperature');
         deviceStatus.next(deviceStatus.value);
       } else if (sensorConnected === 'voltage') {
-        deviceStatus.value.operation = 'measure_voltage';
+        setOpearation('measure_voltage');
         deviceStatus.next(deviceStatus.value);
       }
     }
@@ -179,7 +187,7 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
         heaterDataStream.next(data);
       });
 
-      deviceStatus.value.operation = 'heater_control';
+      setOpearation('heater_control');
       deviceStatus.next(deviceStatus.value);
     }
 
@@ -199,20 +207,35 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
             rgbDataStream.next(data);
           });
 
-          deviceStatus.value.operation = 'rgb_calibrate';
-          deviceStatus.next(deviceStatus.value);    
+          setOpearation('rgb_calibrate');
+          deviceStatus.next(deviceStatus.value);
         } else if (rgbConnected === 'measure') {
           subsX3 = source.subscribe((value) => {
+            const calibrateTest = rgbDataStream.value?.calibrateTest || null;
             const measure = rgbDataStream.value?.measure || [null, null, null];
             if (value === 0) measure[value] = 1.37;
             if (value === 1) measure[value] = 0.36;
             if (value === 2) measure[value] = 3.46;
-            const data: RgbDataStream = { calibrateTest: null, measure };
+            const data: RgbDataStream = { calibrateTest, measure };
             rgbDataStream.next(data);
           });
 
-          deviceStatus.value.operation = 'rgb_measure';
-          deviceStatus.next(deviceStatus.value);    
+          setOpearation('rgb_measure');
+
+          const { operationPrev, operation } = deviceStatus.value;
+          if (operation === 'rgb_measure') {
+            if (operationPrev === 'rgb_calibrate') {
+              deviceStatus.value.rgbCalibratedAndTested = true;
+            } else if (operationPrev === 'rgb_measure') {
+              // remains same
+            } else {
+              deviceStatus.value.rgbCalibratedAndTested = false;
+            }
+          } else {
+            deviceStatus.value.rgbCalibratedAndTested = false;
+          }
+
+          deviceStatus.next(deviceStatus.value);
         }
       }
     }

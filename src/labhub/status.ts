@@ -14,8 +14,10 @@ export const initialDeviceStatus: DeviceStatus = {
   setpointTemp: 25,  // default setpoint temperature (in *C)
   heaterConnected: null,
   rgbCalibrated: false,
+  rgbCalibratedAndTested: false,
   rgbConnected: null,
   screenNumber: null,
+  operationPrev: null,
   operation: null,
   temperatureLog: [],
   voltageLog: [],
