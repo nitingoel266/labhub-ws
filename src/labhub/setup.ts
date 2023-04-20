@@ -1,4 +1,4 @@
-import { Subscription, timer, take, concat, of, merge } from 'rxjs';
+import { Subscription, timer, take, concat, of, merge, delay } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { DeviceStatus, DeviceStatusUpdate, SensorDataStream, DeviceDataFeed, DeviceDataFeedUpdate, HeaterDataStream, RgbDataStream, ClientChannelRequest, ClientChannelResponse, LeaderOperation } from '../types/common';
@@ -126,7 +126,7 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
       const dataRateMs = dataRate * 1000;
 
       const obs1 = timer(0, dataRateMs);
-      const obs2 = concat(timer(0, dataRateMs).pipe(take(setupData.dataSample as number)), of(-1));
+      const obs2 = concat(timer(0, dataRateMs).pipe(take(setupData.dataSample as number)), of(-1).pipe(delay(1000)));
       const source = setupData.dataSample === 'cont' ? obs1 : obs2;
 
       subsX1 = source.subscribe((value) => {
