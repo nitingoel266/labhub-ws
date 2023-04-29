@@ -228,16 +228,24 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
 
       if (rgbCalibrated && rgbConnected === 'calibrate_test') {
         experimentActive = true;
-        const source = concat(timer(0, 1000).pipe(take(3)), of(-1).pipe(delay(1000)));
+        // const source = concat(timer(0, 1000).pipe(take(3)), of(-1).pipe(delay(1000)));
+        const source = concat(timer(0, 1000).pipe(take(2)), of(-1).pipe(delay(1000)));
 
         subsX3 = source.subscribe((value) => {
           if (value < 0) {
             resetRgbDataStream(true);
           } else {
-            const calibrateTest = rgbDataStream.value?.calibrateTest || [null, null, null];
-            if (value === 0) calibrateTest[value] = 0;
-            if (value === 1) calibrateTest[value] = -0.1;
-            if (value === 2) calibrateTest[value] = 0.2;
+            let calibrateTest = rgbDataStream.value?.calibrateTest || [null, null, null];
+
+            // if (value === 0) calibrateTest[value] = 0;
+            // if (value === 1) calibrateTest[value] = -0.1;
+            // if (value === 2) calibrateTest[value] = 0.2;
+            if (value === 0) {
+              calibrateTest = [null, null, null];
+            } else if (value === 1) {
+              calibrateTest = [0, -0.1, 0.2];
+            }
+
             const data: RgbDataStream = { calibrateTest, measure: null };
             rgbDataStream.next(data);
           }
@@ -247,17 +255,25 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
         deviceStatus.value.rgbCalibratedAndTested = true;
       } else if (rgbConnected === 'measure') {
         experimentActive = true;
-        const source = concat(timer(0, 1000).pipe(take(3)), of(-1).pipe(delay(1000)));
+        // const source = concat(timer(0, 1000).pipe(take(3)), of(-1).pipe(delay(1000)));
+        const source = concat(timer(0, 1000).pipe(take(2)), of(-1).pipe(delay(1000)));
 
         subsX3 = source.subscribe((value) => {
           if (value < 0) {
             resetRgbDataStream();
           } else {
             const calibrateTest = rgbDataStream.value?.calibrateTest || null;
-            const measure = rgbDataStream.value?.measure || [null, null, null];
-            if (value === 0) measure[value] = 1.37;
-            if (value === 1) measure[value] = 0.36;
-            if (value === 2) measure[value] = 3.46;
+            let measure = rgbDataStream.value?.measure || [null, null, null];
+
+            // if (value === 0) measure[value] = 1.37;
+            // if (value === 1) measure[value] = 0.36;
+            // if (value === 2) measure[value] = 3.46;
+            if (value === 0) {
+              measure = [null, null, null];
+            } else if (value === 1) {
+              measure = [1.37, 0.36, 3.46];
+            }
+
             const data: RgbDataStream = { calibrateTest, measure };
             rgbDataStream.next(data);
           }
