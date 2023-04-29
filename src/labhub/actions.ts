@@ -44,7 +44,9 @@ export const getUpdatedDeviceStatus = (value: DeviceStatusUpdate) => {
     } else if (key === 'leaderSelected') {
       if (value !== null && deviceStatusNew[key] === null) {
         removeMember(deviceStatusNew.membersJoined, value as string);
-        deviceStatusNew = { ...deviceStatusNew, [key]: value as string };  
+
+        // deviceStatusNew = { ...deviceStatusNew, [key]: value as string };
+        deviceStatusNew = { ...initialDeviceStatus, [key]: value as string }; // Reset device status in case a new leader is selected
       } else if (value === null && deviceStatusNew[key]) {
         const clientId = deviceStatusNew[key] as string;
         deviceStatusNew = { ...deviceStatusNew, [key]: value };
