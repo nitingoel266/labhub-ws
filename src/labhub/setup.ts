@@ -16,12 +16,17 @@ let temperatureLog: number[] = [];
 let voltageLog: number[] = [];
 
 function resetSensorDataStream() {
-  experimentActive = false;
+  if (experimentActive) {
+    experimentActive = false;
+    resetOpearation();
+  }
+
   temperatureLog = [];
   voltageLog = [];
 
   deviceStatus.value.temperatureLog = [];
   deviceStatus.value.voltageLog = [];
+
   deviceStatus.next(deviceStatus.value);
 
   if (subsX1) subsX1.unsubscribe();
@@ -29,14 +34,28 @@ function resetSensorDataStream() {
 }
 
 function resetHeaterDataStream() {
-  experimentActive = false;
+  if (experimentActive) {
+    experimentActive = false;
+    resetOpearation();
+  }
+
+  // signal any changes in deviceStatus
+  deviceStatus.next(deviceStatus.value);
+
   currTemp = 20;
   if (subsX2) subsX2.unsubscribe();
   heaterDataStream.next(null);
 }
 
 function resetRgbDataStream(softReset?: boolean) {
-  experimentActive = false;
+  if (experimentActive) {
+    experimentActive = false;
+    resetOpearation();
+  }
+
+  // signal any changes in deviceStatus
+  deviceStatus.next(deviceStatus.value);
+
   if (subsX3) subsX3.unsubscribe();
 
   if (softReset) {
@@ -48,7 +67,7 @@ function resetRgbDataStream(softReset?: boolean) {
       rgbDataStream.next(null);
     }
   } else {
-    updateDeviceStatus({ rgbCalibrated: false, rgbCalibratedAndTested: false }, () => {
+    updateDeviceStatus({ rgbCalibrated: false }, () => {
       rgbDataStream.next(null);
     });
   }
@@ -63,8 +82,12 @@ function updateDeviceStatus(value: DeviceStatusUpdate, callback?: Function) {
 }
 
 function setOpearation(operation: LeaderOperation) {
-  deviceStatus.value.operationPrev = deviceStatus.value.operation;
   deviceStatus.value.operation = operation;
+}
+
+function resetOpearation() {
+  deviceStatus.value.operationPrev = deviceStatus.value.operation;
+  deviceStatus.value.operation = null;
 }
 
 export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => {  
@@ -99,7 +122,10 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     socket.emit(TOPIC_DEVICE_STATUS, sc);
   });
 
-  socket.on(TOPIC_DEVICE_DATA_FEED_UPDATE, ({ sensorExperiment, heaterExperiment, rgbExperiment }: DeviceDataFeedUpdate) => {
+  socket.on(TOPIC_DEVICE_DATA_FEED_UPDATE, ({ sensorExperiment, heaterExperiment, rgbExperiment }: DeviceDataFeedUpdate) => {    
+    let rgbCalibratedAndTested = deviceStatus.value.rgbCalibratedAndTested;
+    deviceStatus.value.rgbCalibratedAndTested = false;
+
     if (sensorExperiment === false) {
       resetSensorDataStream();
     }
@@ -163,11 +189,11 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
 
       if (sensorConnected === 'temperature') {
         setOpearation('measure_temperature');
-        deviceStatus.next(deviceStatus.value);
       } else if (sensorConnected === 'voltage') {
         setOpearation('measure_voltage');
-        deviceStatus.next(deviceStatus.value);
       }
+
+      deviceStatus.next(deviceStatus.value);
     }
 
     if (heaterExperiment === true) {
@@ -187,7 +213,12 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
         heaterDataStream.next(data);
       });
 
-      setOpearation('heater_control');
+      if (heaterConnected === 'element') {
+        setOpearation('heater_control');
+      } else if (heaterConnected === 'probe') {
+        setOpearation('heater_probe');
+      }
+
       deviceStatus.next(deviceStatus.value);
     }
 
@@ -195,8 +226,8 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
       const { rgbConnected, rgbCalibrated } = deviceStatus.value;
       if (rgbCalibrated) {
         experimentActive = true;
-
         const source = timer(0, 1000).pipe(take(3));
+
         if (rgbConnected === 'calibrate_test') {
           subsX3 = source.subscribe((value) => {
             const calibrateTest = rgbDataStream.value?.calibrateTest || [null, null, null];
@@ -208,7 +239,6 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
           });
 
           setOpearation('rgb_calibrate');
-          deviceStatus.next(deviceStatus.value);
         } else if (rgbConnected === 'measure') {
           subsX3 = source.subscribe((value) => {
             const calibrateTest = rgbDataStream.value?.calibrateTest || null;
@@ -222,21 +252,15 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
 
           setOpearation('rgb_measure');
 
-          const { operationPrev, operation } = deviceStatus.value;
-          if (operation === 'rgb_measure') {
-            if (operationPrev === 'rgb_calibrate') {
-              deviceStatus.value.rgbCalibratedAndTested = true;
-            } else if (operationPrev === 'rgb_measure') {
-              // remains same
-            } else {
-              deviceStatus.value.rgbCalibratedAndTested = false;
-            }
-          } else {
-            deviceStatus.value.rgbCalibratedAndTested = false;
+          const { operation } = deviceStatus.value;
+          if (operation === 'rgb_calibrate') {
+            deviceStatus.value.rgbCalibratedAndTested = true;
+          } else if (operation === 'rgb_measure') {
+            deviceStatus.value.rgbCalibratedAndTested = rgbCalibratedAndTested;
           }
-
-          deviceStatus.next(deviceStatus.value);
         }
+
+        deviceStatus.next(deviceStatus.value);
       }
     }
   });

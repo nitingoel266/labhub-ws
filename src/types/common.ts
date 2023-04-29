@@ -13,6 +13,7 @@ export type LeaderOperation = null
   | 'measure_temperature'
   | 'measure_voltage'
   | 'heater_control'
+  | 'heater_probe'
   | 'rgb_calibrate'
   | 'rgb_measure';
 
@@ -48,7 +49,6 @@ export interface DeviceStatusUpdate {
   setpointTemp?: number;
   heaterConnected?: HeaterSelect;
   rgbCalibrated?: boolean;
-  rgbCalibratedAndTested?: boolean;
   rgbConnected?: RgbFuncSelect;
   screenNumber?: number;
 }
