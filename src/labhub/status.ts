@@ -6,7 +6,7 @@ export const initialDeviceStatus: DeviceStatus = {
   deviceVersion: '2.10',
   deviceSerial: '',
   deviceManufacturer: '',
-  batteryLevel: 75,
+  batteryLevel: 70,
   leaderSelected: null,
   membersJoined: [],
   setupData: { dataRate: 1, dataSample: 'cont' },

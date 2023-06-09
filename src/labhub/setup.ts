@@ -91,7 +91,7 @@ function resetOperation() {
   deviceStatus.value.operation = null;
 }
 
-export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => {  
+export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => {
   const clientId = socket.handshake.query.clientId as string;
   const clientType = getClientType(clientId);
   if (clientId && clientType === null) {
@@ -316,7 +316,16 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     callback(clientChannelResp);
   });
 
-  return [subs1, subs2];
+  const subs3 = timer(0, 1000).subscribe((value) => {
+    const batteryLevel = 70 + Math.floor(value / 10) % 10;
+    if (deviceStatus.value.batteryLevel !== batteryLevel) {
+      deviceStatus.value.batteryLevel = batteryLevel;
+    }
+
+    deviceStatus.next(deviceStatus.value);
+  });
+
+  return [subs1, subs2, subs3];
 };
 
 export const uninitSetup = (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => {
