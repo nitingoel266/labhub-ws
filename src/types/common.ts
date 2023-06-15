@@ -71,7 +71,7 @@ export interface RgbDataStream {
 }
 
 export interface DeviceDataFeedUpdate {
-  sensorExperiment?: boolean;
+  sensorExperiment?: 0 | 1 | 2;
   heaterExperiment?: boolean;
   rgbExperiment?: boolean;
 }

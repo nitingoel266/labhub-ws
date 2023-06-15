@@ -127,7 +127,7 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
     let rgbCalibratedAndTested = deviceStatus.value.rgbCalibratedAndTested;
     deviceStatus.value.rgbCalibratedAndTested = false;
 
-    if (sensorExperiment === false) {
+    if (sensorExperiment === 0 || sensorExperiment === 2) {
       resetSensorDataStream();
     }
 
@@ -145,7 +145,7 @@ export const initSetup = (io: Server<DefaultEventsMap, DefaultEventsMap, Default
       resetRgbDataStream(true);
     }
 
-    if (sensorExperiment === true) {
+    if (sensorExperiment === 1 || sensorExperiment === 2) {
       experimentActive = true;
       const { sensorConnected, setupData } = deviceStatus.value;
 
